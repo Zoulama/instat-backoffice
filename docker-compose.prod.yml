@@ -1,0 +1,179 @@
+# INSTAT Back Office - Production Docker Compose
+version: '3.8'
+
+services:
+  # Frontend Application
+  instat-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: instat-backoffice
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      - NODE_ENV=production
+      - API_URL=${API_URL:-https://api.instat-survey-platform.com}
+      - APP_BASE_URL=${APP_BASE_URL:-https://instat-backoffice.com}
+      - FORCE_HTTPS=true
+      - CSP_ENABLED=true
+      - ENABLE_PRODUCTION_OPTIMIZATIONS=true
+      - LOG_LEVEL=warn
+      - ENABLE_CONSOLE_LOGS=false
+      - ENABLE_REMOTE_LOGGING=true
+      - ENABLE_SERVICE_WORKER=true
+      - CACHE_EXPIRATION_MINUTES=60
+    
+    # Port mapping
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    # Volume mounts
+    volumes:
+      - ./ssl:/etc/ssl/certs:ro
+      - logs:/var/log/nginx
+      - app-logs:/var/log/app
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    
+    # Network
+    networks:
+      - instat-network
+    
+    # Dependencies
+    depends_on:
+      - nginx-proxy
+      - log-collector
+  
+  # Nginx Reverse Proxy
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    
+    ports:
+      - "8080:80"
+      - "8443:443"
+    
+    volumes:
+      - ./nginx/proxy.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/certs:ro
+      - proxy-logs:/var/log/nginx
+    
+    networks:
+      - instat-network
+    
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # Log Collector (Optional - for centralized logging)
+  log-collector:
+    image: fluent/fluent-bit:latest
+    container_name: log-collector
+    restart: unless-stopped
+    
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - logs:/var/log/nginx:ro
+      - app-logs:/var/log/app:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    
+    environment:
+      - LOG_LEVEL=info
+      - REMOTE_LOG_ENDPOINT=${REMOTE_LOG_ENDPOINT:-}
+    
+    networks:
+      - instat-network
+    
+    depends_on:
+      - instat-frontend
+  
+  # Monitoring (Optional - Prometheus metrics)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    
+    ports:
+      - "9090:9090"
+    
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    
+    networks:
+      - instat-network
+  
+  # Grafana (Optional - Metrics visualization)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    
+    ports:
+      - "3000:3000"
+    
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    
+    networks:
+      - instat-network
+    
+    depends_on:
+      - prometheus
+
+# Named volumes
+volumes:
+  logs:
+    driver: local
+  app-logs:
+    driver: local
+  proxy-logs:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# Networks
+networks:
+  instat-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

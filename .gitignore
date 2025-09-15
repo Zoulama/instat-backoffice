@@ -1,0 +1,451 @@
+# INSTAT Back Office Frontend - Git Ignore File
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# ==============================================
+# ANGULAR & NODE.JS
+# ==============================================
+
+# Compiled output
+/dist
+/dist-server
+/tmp
+/out-tsc
+/bazel-out
+*.tgz
+*.tar.gz
+
+# Node.js
+/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Snowpack dependency directory (https://snowpack.dev/)
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Angular
+/.angular/cache
+.sass-cache/
+/connect.lock
+/libpeerconnection.log
+testem.log
+/typings
+
+# Angular CLI
+.angular/
+
+# ==============================================
+# ENVIRONMENT & CONFIGURATION
+# ==============================================
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging.local
+
+# Local environment overrides
+environment.local.ts
+environment.*.local.ts
+
+# Configuration files with sensitive data
+config/local.json
+config/production.json
+config/staging.json
+config/development.json
+
+# ==============================================
+# DEPLOYMENT & BUILD
+# ==============================================
+
+# Build directories
+build/
+dist/
+out/
+
+# Docker
+.dockerignore
+
+# PM2
+.pm2/
+ecosystem.config.local.js
+
+# Deployment logs
+*.deploy.log
+deploy.log
+
+# Backup files
+backups/
+*.backup
+*.bak
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+
+# ==============================================
+# LOGS & MONITORING
+# ==============================================
+
+# Log files
+*.log
+logs/
+/logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Application logs
+app.log
+error.log
+access.log
+
+# PM2 logs
+pm2.log
+
+# Nginx logs
+nginx-access.log
+nginx-error.log
+
+# ==============================================
+# SECURITY & CERTIFICATES
+# ==============================================
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+ssl/
+certs/
+private/
+
+# SSH keys
+*.rsa
+*.rsa.pub
+id_rsa*
+id_ed25519*
+.ssh/
+
+# GPG keys
+*.gpg
+*.asc
+
+# API keys and secrets
+secrets/
+*.secret
+*.secrets
+api-keys.json
+
+# ==============================================
+# DATABASES
+# ==============================================
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+*.db3
+
+# Database dumps
+*.sql
+*.dump
+
+# MongoDB
+*.mongodb
+
+# ==============================================
+# TESTING
+# ==============================================
+
+# Test results
+/coverage
+.coverage
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Unit test reports
+TEST*.xml
+testresults.xml
+
+# E2E test results
+e2e/results/
+cypress/videos/
+cypress/screenshots/
+
+# Jest
+.jest-cache/
+
+# ==============================================
+# IDES AND EDITORS
+# ==============================================
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix
+
+# Visual Studio
+.vs/
+
+# Eclipse
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ==============================================
+# SYSTEM FILES
+# ==============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================================
+# CLOUD & SERVICES
+# ==============================================
+
+# AWS
+.aws/
+aws-exports.js
+
+# Azure
+.azure/
+
+# Google Cloud
+.gcloud/
+service-account-key.json
+
+# Heroku
+.env.local
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify/
+
+# ==============================================
+# TEMPORARY & CACHE FILES
+# ==============================================
+
+# Cache directories
+.cache/
+cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Lock files (keep only one)
+package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ==============================================
+# DEVELOPMENT & DEBUG
+# ==============================================
+
+# Debug files
+*.map
+*.tsbuildinfo
+
+# Local development
+local/
+dev/
+
+# Storybook
+storybook-static/
+
+# ==============================================
+# CUSTOM PROJECT EXCLUSIONS
+# ==============================================
+
+# INSTAT specific exclusions
+# Add any project-specific files here
+
+# Local configuration overrides
+config.local.ts
+config.local.js
+
+# Local scripts
+scripts/local/
+
+# Documentation builds
+docs/build/
+
+# ==============================================
+# KEEP THESE FILES (NEGATION PATTERNS)
+# ==============================================
+
+# Keep important config files
+!.env.example
+!ecosystem.config.js
+!docker-compose*.yml
+!Dockerfile*
+!nginx.conf
+!.gitkeep
+!README.md
+
+# Keep VS Code settings that should be shared
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

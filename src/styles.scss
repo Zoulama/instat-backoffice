@@ -1,0 +1,106 @@
+/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+// Global styles
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background-color: #fafafa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// Custom success and error snackbar styles
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+// Loading animation
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+// Form validation styles
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+  background-color: rgba(244, 67, 54, 0.04);
+}
+
+// Card hover effects
+.mat-mdc-card:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+// Button loading state
+.mat-mdc-button[disabled] {
+  opacity: 0.7;
+}
+
+// Table styles
+.mat-mdc-table {
+  box-shadow: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.mat-mdc-header-row {
+  background-color: #f5f5f5;
+}
+
+.mat-mdc-row:hover {
+  background-color: #f9f9f9;
+}
+
+// Stepper customization
+.mat-stepper-horizontal {
+  margin-top: 8px;
+}
+
+.mat-step-header .mat-step-icon {
+  background-color: #3f51b5;
+}
+
+// Responsive utilities
+@media (max-width: 600px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .show-on-mobile {
+    display: none !important;
+  }
+}
