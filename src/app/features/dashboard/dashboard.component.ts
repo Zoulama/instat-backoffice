@@ -260,6 +260,22 @@ import { environment } from '../../../environments/environment';
           </mat-card-actions>
         </mat-card>
 
+        <!-- Users Management Card -->
+        <mat-card class="action-card" (click)="navigateToUsers()" *ngIf="authService.isAdminOrManager()">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>people</mat-icon>
+              Utilisateurs
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Gérez les utilisateurs, leurs rôles et permissions.</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-raised-button color="primary" class="users-btn">Gérer</button>
+          </mat-card-actions>
+        </mat-card>
+
         <!-- Suggestions Card -->
         <mat-card class="action-card" (click)="navigateToSuggestions()">
           <mat-card-header>
@@ -996,7 +1012,13 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToUpload(): void {
-    this.router.navigate(['/surveys/upload']);
+    console.log('Navigating to upload...');
+    try {
+      this.router.navigate(['/surveys/upload']);
+      console.log('Navigation to upload successful');
+    } catch (error) {
+      console.error('Error navigating to upload:', error);
+    }
   }
 
   navigateToFormGenerator(): void {
@@ -1048,6 +1070,10 @@ export class DashboardComponent implements OnInit {
 
   navigateToSuggestions(): void {
     // Placeholder for suggestions functionality
-    console.log('Navigate to suggestions - to be implemented');
+    console.log('Navigate to suggestions...');
+  }
+
+  navigateToUsers(): void {
+    this.router.navigate(['/users']);
   }
 }

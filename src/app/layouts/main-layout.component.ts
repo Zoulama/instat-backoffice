@@ -68,7 +68,7 @@ import { User } from '../core/models/auth.model';
           </a>
           
           <a mat-list-item routerLink="/users" routerLinkActive="active" 
-             *ngIf="hasPermission('users:read')">
+             *ngIf="authService.isAdminOrManager()">
             <mat-icon matListItemIcon>people</mat-icon>
             <span matListItemTitle>Utilisateurs</span>
           </a>
@@ -177,7 +177,7 @@ export class MainLayoutComponent implements OnInit {
   currentUser: User | null = null;
 
   constructor(
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) {}
 

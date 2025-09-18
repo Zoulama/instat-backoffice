@@ -27,6 +27,30 @@ export class AuthService {
     const storedToken = localStorage.getItem('access_token');
     const storedUser = localStorage.getItem('current_user');
     
+    // En mode développement, créer un utilisateur admin par défaut
+    if (environment.enableMockData && (!storedToken || !this.isTokenValid(storedToken))) {
+      const mockUser: User = {
+        UserID: 1,
+        Username: 'admin',
+        Email: 'admin@instat.gov.ml',
+        FullName: 'Administrateur INSTAT',
+        Role: 'admin',
+        Permissions: ['read', 'write', 'admin', 'users:read', 'users:write', 'users:delete']
+      };
+      
+      // Créer un token mock simple
+      const mockToken = 'mock-jwt-token-' + Date.now();
+      const expiryTime = new Date().getTime() + (24 * 60 * 60 * 1000); // 24 heures
+      
+      localStorage.setItem('access_token', mockToken);
+      localStorage.setItem('current_user', JSON.stringify(mockUser));
+      localStorage.setItem('token_expiry', expiryTime.toString());
+      
+      this.tokenSubject.next(mockToken);
+      this.currentUserSubject.next(mockUser);
+      return;
+    }
+    
     if (storedToken && this.isTokenValid(storedToken)) {
       this.tokenSubject.next(storedToken);
       if (storedUser) {
@@ -180,6 +204,15 @@ export class AuthService {
   }
 
   private isTokenValid(token: string): boolean {
+    // En mode développement, accepter les tokens mockés
+    if (environment.enableMockData && token.startsWith('mock-jwt-token-')) {
+      const expiryTime = localStorage.getItem('token_expiry');
+      if (expiryTime) {
+        return parseInt(expiryTime) > Date.now();
+      }
+      return true;
+    }
+    
     try {
       const tokenInfo = this.parseToken(token);
       const currentTime = Math.floor(Date.now() / 1000);
