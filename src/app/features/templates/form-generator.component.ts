@@ -16,6 +16,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TemplateService } from '../../core/services/template.service';
 import { 
@@ -45,7 +46,8 @@ import {
     MatRadioModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatSliderModule
+    MatSliderModule,
+    MatAutocompleteModule
   ],
   template: `
     <div class="form-generator-container">
@@ -255,13 +257,34 @@ import {
                           [max]="5"
                           [step]="1"
                           [discrete]="true"
+                          [showTickMarks]="true"
                           class="performance-slider">
-                          <input matSliderThumb>
+                          <input matSliderThumb [value]="getFieldValue(i, field.id) || 3">
                         </mat-slider>
                         <div class="slider-labels">
                           <span>Faible</span>
                           <span>Excellent</span>
                         </div>
+                      </div>
+
+                      <!-- Indicator Tracking -->
+                      <div *ngIf="field.type === 'indicator_tracking'" class="field-group">
+                        <label class="field-label">
+                          {{ field.label }}
+                          <span *ngIf="field.required" class="required-star">*</span>
+                        </label>
+                        <mat-form-field appearance="outline" class="full-width">
+                          <mat-label>Rechercher un indicateur CMR</mat-label>
+                          <input matInput 
+                                 [formControlName]="field.id"
+                                 [matAutocomplete]="auto"
+                                 placeholder="Tapez pour rechercher...">
+                          <mat-autocomplete #auto="matAutocomplete">
+                            <mat-option *ngFor="let option of field.options" [value]="option.value">
+                              {{ option.label }}
+                            </mat-option>
+                          </mat-autocomplete>
+                        </mat-form-field>
                       </div>
 
                       <!-- Compliance Checklist -->
@@ -411,8 +434,9 @@ import {
                                 [max]="5"
                                 [step]="1"
                                 [discrete]="true"
+                                [showTickMarks]="true"
                                 class="performance-slider">
-                                <input matSliderThumb>
+                                <input matSliderThumb [value]="getFieldValue(i, field.id) || 3">
                               </mat-slider>
                               <div class="slider-labels">
                                 <span>Faible</span>
@@ -773,6 +797,7 @@ export class FormGeneratorComponent implements OnInit {
   dynamicForm: FormGroup;
   availableTemplates: SurveyTemplateResponse[] = [];
   isLoading = false;
+  private autoSaveTimeout: any;
 
   constructor(
     private route: ActivatedRoute,
@@ -794,6 +819,11 @@ export class FormGeneratorComponent implements OnInit {
         this.loadAvailableTemplates();
       }
     });
+
+    // Set up auto-save every 30 seconds
+    setInterval(() => {
+      this.autoSaveForm();
+    }, 30000);
   }
 
   loadAvailableTemplates(): void {
@@ -876,6 +906,18 @@ export class FormGeneratorComponent implements OnInit {
     });
 
     this.dynamicForm = this.formBuilder.group(formGroups);
+    
+    // Restore saved data if available
+    this.restoreFormData();
+    
+    // Set up form value changes listener for auto-save
+    this.dynamicForm.valueChanges.subscribe(() => {
+      // Debounce auto-save to prevent excessive saves
+      clearTimeout(this.autoSaveTimeout);
+      this.autoSaveTimeout = setTimeout(() => {
+        this.autoSaveForm();
+      }, 2000);
+    });
   }
 
   private addFieldToControls(controls: { [key: string]: FormControl }, field: FormField): void {
@@ -910,7 +952,51 @@ export class FormGeneratorComponent implements OnInit {
 
   isSectionValid(sectionIndex: number): boolean {
     const sectionGroup = this.getSectionFormGroup(sectionIndex);
-    return sectionGroup ? sectionGroup.valid : true;
+    if (!sectionGroup) return true;
+    
+    // Check only required fields for validation
+    const requiredFieldsValid = this.checkRequiredFieldsOnly(sectionGroup);
+    return requiredFieldsValid;
+  }
+
+  private checkRequiredFieldsOnly(formGroup: FormGroup): boolean {
+    if (!this.generatedForm) return true;
+    
+    let allRequiredFieldsValid = true;
+    
+    Object.keys(formGroup.controls).forEach(controlName => {
+      const control = formGroup.get(controlName);
+      if (control && control.hasError('required')) {
+        // Find the field definition to check if it's actually required
+        const fieldId = controlName;
+        const field = this.findFieldById(fieldId);
+        if (field && field.required) {
+          allRequiredFieldsValid = false;
+        }
+      }
+    });
+    
+    return allRequiredFieldsValid;
+  }
+  
+  private findFieldById(fieldId: string): FormField | null {
+    if (!this.generatedForm) return null;
+    
+    for (const section of this.generatedForm.sections) {
+      // Check section fields
+      const field = section.fields.find(f => f.id === fieldId);
+      if (field) return field;
+      
+      // Check subsection fields
+      if (section.subsections) {
+        for (const subsection of section.subsections) {
+          const subField = subsection.fields.find(f => f.id === fieldId);
+          if (subField) return subField;
+        }
+      }
+    }
+    
+    return null;
   }
 
   getSectionProgress(sectionIndex: number): number {
@@ -1018,5 +1104,70 @@ export class FormGeneratorComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/templates']);
+  }
+
+  private autoSaveForm(): void {
+    if (this.dynamicForm && this.templateId) {
+      const formData = this.dynamicForm.value;
+      const saveKey = `form_draft_${this.templateId}`;
+      
+      try {
+        localStorage.setItem(saveKey, JSON.stringify({
+          data: formData,
+          timestamp: new Date().toISOString(),
+          templateId: this.templateId
+        }));
+        
+        console.log('Form auto-saved successfully');
+      } catch (error) {
+        console.error('Error auto-saving form:', error);
+      }
+    }
+  }
+
+  private restoreFormData(): void {
+    if (this.templateId) {
+      const saveKey = `form_draft_${this.templateId}`;
+      
+      try {
+        const savedData = localStorage.getItem(saveKey);
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          
+          // Check if the saved data is not too old (e.g., less than 7 days)
+          const savedDate = new Date(parsedData.timestamp);
+          const now = new Date();
+          const daysDiff = (now.getTime() - savedDate.getTime()) / (1000 * 3600 * 24);
+          
+          if (daysDiff < 7 && parsedData.templateId === this.templateId) {
+            // Restore form values
+            this.dynamicForm.patchValue(parsedData.data);
+            
+            this.snackBar.open('Données restaurées depuis la sauvegarde automatique', 'Fermer', {
+              duration: 5000,
+              panelClass: ['success-snackbar']
+            });
+            
+            console.log('Form data restored from auto-save');
+          } else {
+            // Remove old saved data
+            localStorage.removeItem(saveKey);
+          }
+        }
+      } catch (error) {
+        console.error('Error restoring form data:', error);
+      }
+    }
+  }
+
+  clearSavedData(): void {
+    if (this.templateId) {
+      const saveKey = `form_draft_${this.templateId}`;
+      localStorage.removeItem(saveKey);
+      
+      this.snackBar.open('Brouillon supprimé', 'Fermer', {
+        duration: 3000
+      });
+    }
   }
 }

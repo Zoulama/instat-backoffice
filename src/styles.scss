@@ -57,6 +57,66 @@ html, body {
   background-color: rgba(244, 67, 54, 0.04);
 }
 
+// Icon fixes
+.material-icons {
+  font-family: 'Material Icons' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+// Mat-icon fixes
+mat-icon {
+  font-family: 'Material Icons' !important;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+}
+
+// Button text visibility
+.mat-mdc-button, .mat-mdc-raised-button, .mat-mdc-fab, .mat-mdc-mini-fab {
+  mat-icon {
+    margin-right: 8px;
+  }
+  
+  &:not([disabled]) {
+    color: inherit;
+  }
+}
+
+// Ensure text is visible in buttons
+.mat-mdc-button-base {
+  .mdc-button__label {
+    color: inherit;
+  }
+}
+
+// Fix for cut-off text in form fields
+.mat-mdc-form-field {
+  .mat-mdc-form-field-label {
+    overflow: visible !important;
+  }
+}
+
 // Card hover effects
 .mat-mdc-card:hover {
   box-shadow: 0 8px 16px rgba(0,0,0,0.1);

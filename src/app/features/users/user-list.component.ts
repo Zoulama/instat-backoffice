@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 interface User {
   id: number;
@@ -36,7 +37,8 @@ interface User {
     MatMenuModule,
     MatDividerModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    MatDialogModule
   ],
   template: `
     <div class="container">
@@ -416,7 +418,10 @@ export class UserListComponent implements OnInit {
     }
   ];
 
-  constructor() {}
+  constructor(
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     // Component initialization
@@ -470,8 +475,26 @@ export class UserListComponent implements OnInit {
   }
 
   addUser(): void {
-    console.log('Adding new user');
-    // Open dialog for adding new user
+    // Pour l'instant, on simule l'ajout d'un utilisateur
+    const newUser: User = {
+      id: this.users.length + 1,
+      name: 'Nouvel Utilisateur',
+      email: 'nouveau@instat.gov.ml',
+      role: 'viewer',
+      department: 'Non assigné',
+      status: 'pending',
+      lastLogin: null,
+      created: new Date()
+    };
+    
+    this.users.push(newUser);
+    
+    this.snackBar.open('Utilisateur ajouté avec succès', 'Fermer', {
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
+    
+    console.log('New user added:', newUser);
   }
 
   editUser(id: number): void {

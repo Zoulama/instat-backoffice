@@ -329,7 +329,17 @@ export class MockTemplateService {
             SectionID: 5,
             QuestionText: 'Indicateur CMR atteint',
             QuestionType: INSTATQuestionType.INDICATOR_TRACKING,
-            IsRequired: true
+            IsRequired: true,
+            AnswerOptions: [
+              { OptionID: 50, QuestionID: 18, OptionText: 'Taux de participation aux enquêtes', OptionValue: 'participation_rate' },
+              { OptionID: 51, QuestionID: 18, OptionText: 'Taux de couverture géographique', OptionValue: 'geographic_coverage' },
+              { OptionID: 52, QuestionID: 18, OptionText: 'Taux de qualité des données', OptionValue: 'data_quality' },
+              { OptionID: 53, QuestionID: 18, OptionText: 'Temps de traitement moyen', OptionValue: 'processing_time' },
+              { OptionID: 54, QuestionID: 18, OptionText: 'Taux de satisfaction usagers', OptionValue: 'user_satisfaction' },
+              { OptionID: 55, QuestionID: 18, OptionText: 'Nombre d\'opérations statistiques', OptionValue: 'operations_count' },
+              { OptionID: 56, QuestionID: 18, OptionText: 'Taux de diffusion des résultats', OptionValue: 'diffusion_rate' },
+              { OptionID: 57, QuestionID: 18, OptionText: 'Conformité aux normes internationales', OptionValue: 'standards_compliance' }
+            ]
           },
           {
             QuestionID: 19,
