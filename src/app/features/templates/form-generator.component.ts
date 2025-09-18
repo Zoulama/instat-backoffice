@@ -251,19 +251,24 @@ import {
                           {{ field.label }}
                           <span *ngIf="field.required" class="required-star">*</span>
                         </label>
-                        <mat-slider 
-                          [formControlName]="field.id"
-                          [min]="1"
-                          [max]="5"
-                          [step]="1"
-                          [discrete]="true"
-                          [showTickMarks]="true"
-                          class="performance-slider">
-                          <input matSliderThumb [value]="getFieldValue(i, field.id) || 3">
-                        </mat-slider>
+                        <div class="slider-container">
+                          <mat-slider 
+                            [min]="1"
+                            [max]="5"
+                            [step]="1"
+                            [discrete]="true"
+                            [showTickMarks]="true"
+                            class="performance-slider">
+                            <input matSliderThumb [formControlName]="field.id">
+                          </mat-slider>
+                          <div class="slider-value">
+                            Valeur: {{ getFieldValue(i, field.id) || 3 }}
+                          </div>
+                        </div>
                         <div class="slider-labels">
-                          <span>Faible</span>
-                          <span>Excellent</span>
+                          <span>Faible (1)</span>
+                          <span>Moyen (3)</span>
+                          <span>Excellent (5)</span>
                         </div>
                       </div>
 
@@ -428,19 +433,24 @@ import {
                                 {{ field.label }}
                                 <span *ngIf="field.required" class="required-star">*</span>
                               </label>
-                              <mat-slider 
-                                [formControlName]="field.id"
-                                [min]="1"
-                                [max]="5"
-                                [step]="1"
-                                [discrete]="true"
-                                [showTickMarks]="true"
-                                class="performance-slider">
-                                <input matSliderThumb [value]="getFieldValue(i, field.id) || 3">
-                              </mat-slider>
+                              <div class="slider-container">
+                                <mat-slider 
+                                  [min]="1"
+                                  [max]="5"
+                                  [step]="1"
+                                  [discrete]="true"
+                                  [showTickMarks]="true"
+                                  class="performance-slider">
+                                  <input matSliderThumb [formControlName]="field.id">
+                                </mat-slider>
+                                <div class="slider-value">
+                                  Valeur: {{ getFieldValue(i, field.id) || 3 }}
+                                </div>
+                              </div>
                               <div class="slider-labels">
-                                <span>Faible</span>
-                                <span>Excellent</span>
+                                <span>Faible (1)</span>
+                                <span>Moyen (3)</span>
+                                <span>Excellent (5)</span>
                               </div>
                             </div>
 
@@ -685,17 +695,38 @@ import {
       margin-bottom: 8px;
     }
 
+    .slider-container {
+      margin: 20px 0;
+      padding: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+    }
+
     .performance-slider {
       width: 100%;
-      margin: 20px 0;
+      margin: 16px 0;
+    }
+
+    .slider-value {
+      text-align: center;
+      font-weight: 500;
+      color: #3f51b5;
+      margin-top: 8px;
+      font-size: 14px;
     }
 
     .slider-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11px;
       color: #666;
-      margin-top: -10px;
+      margin-top: 8px;
+      padding: 0 4px;
+    }
+
+    .slider-labels span {
+      font-weight: 500;
     }
 
     .compliance-options {
@@ -932,7 +963,24 @@ export class FormGeneratorComponent implements OnInit {
         controls[`${field.id}_${optionIndex}`] = new FormControl(false);
       });
     } else {
-      controls[field.id] = new FormControl('', validators);
+      // Déterminer la valeur par défaut selon le type de champ
+      let defaultValue: any = '';
+      
+      switch (field.type) {
+        case 'performance_scale':
+          defaultValue = 3; // Valeur moyenne pour les sliders 1-5
+          break;
+        case 'number':
+          defaultValue = 0;
+          break;
+        case 'date':
+          defaultValue = null;
+          break;
+        default:
+          defaultValue = '';
+      }
+      
+      controls[field.id] = new FormControl(defaultValue, validators);
     }
   }
 
