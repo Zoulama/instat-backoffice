@@ -68,7 +68,7 @@ import { User } from '../core/models/auth.model';
           </a>
           
           <a mat-list-item routerLink="/users" routerLinkActive="active" 
-             *ngIf="authService.isAdminOrManager()">
+             *ngIf="authService.isAdmin()">
             <mat-icon matListItemIcon>people</mat-icon>
             <span matListItemTitle>Utilisateurs</span>
           </a>
@@ -192,6 +192,7 @@ export class MainLayoutComponent implements OnInit {
   }
 
   logout(): void {
+    console.log('🎯 Bouton déconnexion cliqué - appel du service auth...');
     this.authService.logout();
   }
 }

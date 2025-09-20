@@ -12,6 +12,7 @@ export class AuthService {
   private readonly API_URL = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenSubject = new BehaviorSubject<string | null>(null);
+  private readonly LOGOUT_FLAG_KEY = 'has_explicitly_logged_out';
 
   public currentUser$ = this.currentUserSubject.asObservable();
   public token$ = this.tokenSubject.asObservable();
@@ -26,9 +27,15 @@ export class AuthService {
   private initializeAuth(): void {
     const storedToken = localStorage.getItem('access_token');
     const storedUser = localStorage.getItem('current_user');
+    const hasExplicitlyLoggedOut = sessionStorage.getItem(this.LOGOUT_FLAG_KEY) === 'true';
     
-    // En mode développement, créer un utilisateur admin par défaut
-    if (environment.enableMockData && (!storedToken || !this.isTokenValid(storedToken))) {
+    console.log('🔄 InitializeAuth - Vérification déconnexion explicite:', hasExplicitlyLoggedOut);
+    console.log('🔄 InitializeAuth - Token existant:', !!storedToken);
+    console.log('🔄 InitializeAuth - Mode mock activé:', environment.enableMockData);
+    
+    // Ne pas créer automatiquement un utilisateur admin
+    // L'utilisateur doit se connecter via l'API
+    if (false) {
       const mockUser: User = {
         UserID: 1,
         Username: 'admin',
@@ -67,6 +74,8 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
+    console.log('🔑 Tentative de connexion via API réelle pour:', credentials.username);
+    
     const formData = new FormData();
     formData.append('username', credentials.username);
     formData.append('password', credentials.password);
@@ -75,6 +84,7 @@ export class AuthService {
       .pipe(
         tap(response => {
           if (response.access_token) {
+            console.log('✅ Connexion API réussie');
             this.setSession(response);
           }
         })
@@ -82,12 +92,40 @@ export class AuthService {
   }
 
   logout(): void {
+    console.log('🚀 Début de la déconnexion...');
+    
+    // Marquer comme déconnexion explicite dans sessionStorage
+    sessionStorage.setItem(this.LOGOUT_FLAG_KEY, 'true');
+    console.log('🛡️ Flag de déconnexion défini dans sessionStorage');
+    
+    // Vérifier l'état avant suppression
+    console.log('📱 Token avant suppression:', localStorage.getItem('access_token'));
+    console.log('👤 Utilisateur avant suppression:', localStorage.getItem('current_user'));
+    
+    // Supprimer les données du localStorage
     localStorage.removeItem('access_token');
     localStorage.removeItem('current_user');
     localStorage.removeItem('token_expiry');
+    
+    // Vérifier que les données ont été supprimées
+    console.log('🗑️ Token après suppression:', localStorage.getItem('access_token'));
+    console.log('🗑️ Utilisateur après suppression:', localStorage.getItem('current_user'));
+    
+    // Mettre à jour les subjects
     this.currentUserSubject.next(null);
     this.tokenSubject.next(null);
-    this.router.navigate(['/auth/login']);
+    
+    console.log('🔄 État des subjects après mise à jour:');
+    console.log('  - currentUser:', this.currentUserSubject.value);
+    console.log('  - token:', this.tokenSubject.value);
+    
+    console.log('🚪 Redirection vers la page de connexion...');
+    // Rediriger vers la page de connexion
+    this.router.navigate(['/auth/login']).then((navigated) => {
+      console.log('✅ Navigation réussie:', navigated);
+    }).catch((error) => {
+      console.error('❌ Erreur de navigation:', error);
+    });
   }
 
   getCurrentUser(): Observable<UserProfile> {
@@ -192,6 +230,10 @@ export class AuthService {
   private setSession(authResult: LoginResponse): void {
     const expiryTime = new Date().getTime() + (authResult.expires_in || 3600) * 1000;
     
+    // Réinitialiser le flag de déconnexion explicite lors d'une connexion réussie
+    sessionStorage.removeItem(this.LOGOUT_FLAG_KEY);
+    console.log('🔄 Flag de déconnexion réinitialisé lors de la connexion');
+    
     localStorage.setItem('access_token', authResult.access_token);
     localStorage.setItem('token_expiry', expiryTime.toString());
     
@@ -233,10 +275,12 @@ export class AuthService {
   }
 
   private clearSession(): void {
+    console.log('🧹 ClearSession appelée');
     localStorage.removeItem('access_token');
     localStorage.removeItem('current_user');
     localStorage.removeItem('token_expiry');
     this.currentUserSubject.next(null);
     this.tokenSubject.next(null);
+    // Note: on ne touche pas au flag de déconnexion explicite ici
   }
 }
