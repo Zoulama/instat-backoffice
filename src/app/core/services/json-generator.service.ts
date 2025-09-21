@@ -447,7 +447,7 @@ export class JsonGeneratorService {
   private formatStructuredJSON(template: SurveyTemplate, options: JSONGenerationOptions): string {
     // Create a structured format with comments and sections
     const structuredOutput = {
-      "$schema": "https://instat.ml/schemas/survey-template/v2.1.0",
+      "$schema": `${environment.production ? 'https://instat.ml' : environment.appBaseUrl}/schemas/survey-template/v2.1.0`,
       "$version": template.version,
       "$generated": new Date().toISOString(),
       "$generator": "INSTAT Survey Platform v1.0.0",

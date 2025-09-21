@@ -24,7 +24,7 @@ import { MockTemplateService } from './mock-template.service';
 })
 export class TemplateService {
   private readonly API_URL = environment.apiUrl;
-  private readonly useMockData = !environment.production; // Use mock data in development
+  private readonly useMockData = environment.enableMockData && !environment.production; // Use mock data only when explicitly enabled
 
   constructor(
     private http: HttpClient,
