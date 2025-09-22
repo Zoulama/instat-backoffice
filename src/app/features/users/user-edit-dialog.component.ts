@@ -10,7 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 
 interface User {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: 'admin' | 'manager' | 'analyst' | 'viewer';
   department: string;
@@ -42,10 +43,24 @@ interface User {
       <mat-dialog-content class="dialog-content">
         <form [formGroup]="editForm" class="edit-form">
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nom complet</mat-label>
-            <input matInput formControlName="name" placeholder="Nom complet">
-            <mat-error *ngIf="editForm.get('name')?.hasError('required')">
-              Le nom est requis
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" placeholder="Prénom">
+            <mat-error *ngIf="editForm.get('firstName')?.hasError('required')">
+              Le prénom est requis
+            </mat-error>
+            <mat-error *ngIf="editForm.get('firstName')?.hasError('minlength')">
+              Le prénom doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom de famille</mat-label>
+            <input matInput formControlName="lastName" placeholder="Nom de famille">
+            <mat-error *ngIf="editForm.get('lastName')?.hasError('required')">
+              Le nom de famille est requis
+            </mat-error>
+            <mat-error *ngIf="editForm.get('lastName')?.hasError('minlength')">
+              Le nom de famille doit contenir au moins 2 caractères
             </mat-error>
           </mat-form-field>
           
@@ -166,7 +181,8 @@ export class UserEditDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: { user: User }
   ) {
     this.editForm = this.formBuilder.group({
-      name: [data.user.name, [Validators.required]],
+      firstName: [data.user.firstName, [Validators.required, Validators.minLength(2)]],
+      lastName: [data.user.lastName, [Validators.required, Validators.minLength(2)]],
       email: [data.user.email, [Validators.required, Validators.email]],
       role: [data.user.role, [Validators.required]],
       department: [data.user.department, [Validators.required]],

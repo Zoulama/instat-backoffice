@@ -75,6 +75,26 @@ export const routes: Routes = [
         path: 'schemas',
         component: FrontendSchemasComponent,
         // canActivate: [managerOrAdminGuard] // Could add specific role guard
+      },
+      {
+        path: 'forms/diag',
+        loadComponent: () => import('./features/forms/diag-form.component').then(m => m.DiagFormComponent)
+      },
+      {
+        path: 'forms/bilan',
+        loadComponent: () => import('./features/forms/bilan-form.component').then(m => m.BilanFormComponent)
+      },
+      {
+        path: 'forms/prog',
+        loadComponent: () => import('./features/forms/prog-form.component').then(m => m.ProgFormComponent)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
       }
     ]
   },

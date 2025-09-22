@@ -31,14 +31,31 @@ import { MatIconModule } from '@angular/material/icon';
       <mat-dialog-content class="dialog-content">
         <form [formGroup]="createForm" class="create-form">
           <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" placeholder="Prénom">
+            <mat-error *ngIf="createForm.get('firstName')?.hasError('required')">
+              Le prénom est requis
+            </mat-error>
+            <mat-error *ngIf="createForm.get('firstName')?.hasError('minlength')">
+              Le prénom doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom de famille</mat-label>
+            <input matInput formControlName="lastName" placeholder="Nom de famille">
+            <mat-error *ngIf="createForm.get('lastName')?.hasError('required')">
+              Le nom de famille est requis
+            </mat-error>
+            <mat-error *ngIf="createForm.get('lastName')?.hasError('minlength')">
+              Le nom de famille doit contenir au moins 2 caractères
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nom d'utilisateur</mat-label>
-            <input matInput formControlName="username" placeholder="Nom d'utilisateur">
-            <mat-error *ngIf="createForm.get('username')?.hasError('required')">
-              Le nom d'utilisateur est requis
-            </mat-error>
-            <mat-error *ngIf="createForm.get('username')?.hasError('minlength')">
-              Le nom d'utilisateur doit contenir au moins 3 caractères
-            </mat-error>
+            <input matInput formControlName="username" placeholder="Généré automatiquement à partir de l'email" [readonly]="true">
+            <mat-hint>Le nom d'utilisateur sera identique à l'adresse email</mat-hint>
           </mat-form-field>
           
           <mat-form-field appearance="outline" class="full-width">
@@ -184,7 +201,9 @@ export class UserCreateDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<UserCreateDialogComponent>
   ) {
     this.createForm = this.formBuilder.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      username: [{ value: '', disabled: true }], // Username généré automatiquement et en lecture seule
       email: ['', [Validators.required, Validators.email]],
       role: ['viewer', [Validators.required]],
       department: ['', [Validators.required]],
@@ -195,6 +214,22 @@ export class UserCreateDialogComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('➕ Dialog ouvert pour créer un nouvel utilisateur');
+    
+    // Observer les changements de nom/prénom et email pour générer le username automatiquement
+    this.createForm.get('firstName')?.valueChanges.subscribe(() => this.generateUsername());
+    this.createForm.get('lastName')?.valueChanges.subscribe(() => this.generateUsername());
+    this.createForm.get('email')?.valueChanges.subscribe(() => this.generateUsername());
+  }
+
+  /**
+   * Génère automatiquement le username basé sur l'email
+   */
+  generateUsername(): void {
+    const email = this.createForm.get('email')?.value;
+    if (email) {
+      // Le username sera l'email complet
+      this.createForm.get('username')?.setValue(email);
+    }
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -215,7 +250,9 @@ export class UserCreateDialogComponent implements OnInit {
   onCreate(): void {
     if (this.createForm.valid) {
       const userData = {
-        username: this.createForm.value.username,
+        firstName: this.createForm.value.firstName,
+        lastName: this.createForm.value.lastName,
+        username: this.createForm.value.email, // Username = email
         email: this.createForm.value.email,
         role: this.createForm.value.role,
         department: this.createForm.value.department,

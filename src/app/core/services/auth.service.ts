@@ -151,6 +151,17 @@ export class AuthService {
       );
   }
 
+  changePassword(passwordData: { current_password: string; new_password: string }): Observable<any> {
+    console.log('🔐 Changement de mot de passe via API:', this.API_URL + '/v1/api/auth/change-password');
+    
+    return this.http.post(`${this.API_URL}/v1/api/auth/change-password`, passwordData)
+      .pipe(
+        tap(response => {
+          console.log('✅ Mot de passe changé avec succès via API:', response);
+        })
+      );
+  }
+
   isAuthenticated(): boolean {
     const token = this.getToken();
     return token ? this.isTokenValid(token) : false;

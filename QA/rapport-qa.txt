@@ -1,0 +1,284 @@
+Recette Application
+INSTAT FRONTOFFICE FOR DATA API BACKEND
+
+
+Sommaire
+INSTAT Back Office	3
+1. Objet	3
+2. Auteurs / Acteurs	3
+3. Circuit de relecture	3
+4. Page d’Accueil	3
+4.1. Liens Profil et Paramètres KO	3
+4.2. Rôles à centrer	4
+4.3. Libellés Menu	4
+4.4. Cohérence libellé avec le titre de la page	5
+4.5. Surlignage du menu	5
+5. Tableau de bord	7
+5.1. Liens inactifs	7
+5.2. Schémas Backend	7
+5.3. Schémas Frontend	8
+5.4. Créer un Survey	10
+5.5. Recherche	13
+5.6. Gestionnaire des sondages	14
+5.7. Statistiques	14
+5.8. Utilisateurs	14
+5.9. Suggestions	16
+6. Enquêtes	17
+6.1. Actions « Voir » et « Modifier » inactives	17
+6.2. Action « Ouvrir » inactif	17
+6.3. Action « Formulaire »	17
+7. Templates	18
+7.1. Bouton Créer un Template	18
+8. Générateur de Formulaires	18
+8.1. Listbox « Choisir un Template »	18
+9. Import Excel	19
+9.1. Taux d’avancement progression du téléchargement	19
+9.1. Import du fichier	19
+9.2. Apperçu impossible	19
+9.3. Créer l’Enquête	20
+
+INSTAT Back Office
+	•	Objet
+Ce document dresse le bilan de la recette de l’application INSTAT Back Office INSTAT Back Office Plateforme de gestion des enquêtes dans l’environnement de test. 
+https://webformstest.instat-survey.adipappi.net
+Cette application utilise l’API Backend  OpenApi https://instat-surveytest.adipappi.net
+
+	•	Auteurs / Acteurs
+Trigramme
+Nom Complet
+Fonction
+Organisation
+AOD
+
+Dr. Ing. Antimbé Ousmane DJIGUIBA
+
+
+
+	•	Circuit de relecture
+Version
+Date révision
+Version 
+INSTAT BACK OFFICE
+Résumé des modifications
+Rédaction
+Relecture
+1.0.0
+21/09/2025
+
+Version initiale 
+AOD
+AOD
+
+	•	Page d’Accueil
+	•	Liens Profil et Paramètres KO
+
+	•	Rôles à centrer
+	•	
+	•	
+	•	Libellés Menu 
+
+
+
+
+
+
+
+
+
+
+
+	•	Cohérence libellé avec le titre de la page 
+
+
+	•	Surlignage du menu 
+…..quand on clique sur « Gestionnaire Enquê… », le sous menu Enquêtes est « surligné »
+
+
+
+
+Idem quand on clique sur  « Gestionnaire de formulaires » , cela surligne aussi « Templates » :
+
+
+
+Idem en cliquant sur « Import Excel » 
+
+
+
+	•	Tableau de bord
+	•	Liens inactifs
+	•	
+	•	Schémas Backend
+	•	Liens inactifs
+
+
+
+
+
+
+
+
+
+
+
+
+
+	•	Schémas Frontend
+	•	Schéma Survey
+	•	Nouvelle Enqûete
+Redirection KO
+
+
+
+
+
+
+
+
+	•	 Schéma Survey - Actions KO
+On a bien les messages d’informations mais les actions ne sont pas effectuées.
+
+
+	•	Schéma FileUpload - Historique des imports 
+
+
+
+	•	Schéma INSTAT - Domaines Instat Disponibles 
+Est-ce que les liens doivent être actifs ?
+
+
+
+	•	Créer un Survey
+	•	Libellé 
+Écrire Enquête à la place de Survey ?
+ 
+
+
+
+
+
+	•	Création d’Enquête
+	•	Création d’enquête – création manuelle
+
+Les titres des champs sont masqués
+
+
+
+
+Le clic sur le bouton « Suivant » génère un message d’erreur
+
+
+
+
+
+
+
+
+
+	•	Création d’enquête – Import Excel
+On importe un fichier excel mais le Message « Upload en cours » reste
+
+
+Quelle est l’action de la case à cocher « créer automatiquement un template » ?
+
+
+
+
+
+	•	Création d’enquête – Depuis Template
+Le sablier « Création » ne bouge pas quand on clique sur « Créer depuis Template »
+
+
+
+	•	Recherche
+	•	Compteur résultat à décaler après le mot « recherche »
+
+
+Quelle est l’action attendue quand on cliqur sur > quand on clique il ne se passe rien 
+
+
+	•	Gestionnaire des sondages
+	•	Boutons Résultats et Configuer
+
+Renvoient vers le tableau de bord ????????????
+	•	Statistiques
+	•	Lien inactif
+
+
+	•	Utilisateurs
+	•	Fenêtre Créer un utilisateur
+
+Libellé titre du champ Nom utilisateur masqué
+
+
+
+	•	Bouton Créer un utilisateur
+On renseigne toutes les infos et on clique sur le bouton Créer l’utilisateur : pour voir le nouvel utilisateur crée, il faut actualiser la liste avec la flèche pour voir le nouvel utilisateur crée : peut être supprimer cette action d’actualisation de liste.
+
+Pareil pour Activer/Désactiver
+	•	L’action Modifier
+On renseigne toutes les infos et on clique sur le bouton « Enregistrer » mais cela ne modifie rien.
+
+
+
+Libellé titre du champ Nom complet masqué également.
+
+
+	•	L’action Réinitialiser le mot de passe
+Où est-il généré ? qui le reçoit : l’utilisateur ou l’admin ? 
+
+De même l’utilisateur n’a pas de prénom ni un nom de famille. 
+
+
+
+
+	•	Suggestions
+	•	Lien inactif
+
+
+
+	•	Enquêtes
+	•	Actions « Voir » et « Modifier » inactives
+	•	
+	•	
+	•	Action « Ouvrir » inactif
+
+	•	Action « Formulaire »
+Renvoi vers Tableau de bord est-ce normal ?
+
+	•	Templates
+	•	Bouton Créer un Template
+
+Renvoient vers le tableau de bord
+	•	Générateur de Formulaires
+	•	Listbox « Choisir un Template »
+Il est Impossible de Sélectionner un template
+
+
+	•	Import Excel
+	•	Taux d’avancement progression du téléchargement
+Enlever les décimales
+
+
+	•	Import du fichier
+Ne fonctionne pas tout le temps avec le même fichier. 
+
+	•	Aperçu impossible
+
+
+
+
+
+
+
+
+
+
+	•	Créer l’Enquête
+Quand on clique sur Créer l’Enquête on est redirigé ver l’IHM Gestion des Enquêtes avec un message d’information « Enquête créée avec succès !» mais où est-elle créée ? Cela doit afficher la liste des enquêtes triée par date de création.  
+
+
+
+
+
+
+Peut on exporter les données remplies d’un formulaire bien rempli en format json. En mettant en exergue les réponses choisies ? 

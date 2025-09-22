@@ -291,6 +291,63 @@ import { environment } from '../../../environments/environment';
             <button mat-raised-button class="suggestions-btn">Soumettre</button>
           </mat-card-actions>
         </mat-card>
+        
+        <!-- Formulaires INSTAT Section -->
+        <div class="forms-section full-width">
+          <h3>Formulaires INSTAT</h3>
+          <div class="forms-cards">
+            <!-- DIAG Form -->
+            <mat-card class="form-card diag-card" (click)="navigateToDiagForm()">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>assessment</mat-icon>
+                  DIAG
+                </mat-card-title>
+                <mat-card-subtitle>Diagnostic Institutionnel</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p>Évaluation des capacités et besoins de l'institution</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-raised-button color="primary">Commencer</button>
+              </mat-card-actions>
+            </mat-card>
+            
+            <!-- BILAN Form -->
+            <mat-card class="form-card bilan-card" (click)="navigateToBilanForm()">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>analytics</mat-icon>
+                  BILAN
+                </mat-card-title>
+                <mat-card-subtitle>Bilan de Performance</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p>Évaluation des résultats et performance</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-raised-button color="primary">Commencer</button>
+              </mat-card-actions>
+            </mat-card>
+            
+            <!-- PROG Form -->
+            <mat-card class="form-card prog-card" (click)="navigateToProgForm()">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>timeline</mat-icon>
+                  PROG
+                </mat-card-title>
+                <mat-card-subtitle>Programmation</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <p>Planification et définition des objectifs</p>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-raised-button color="primary">Commencer</button>
+              </mat-card-actions>
+            </mat-card>
+          </div>
+        </div>
       </div>
       
       <!-- Additional Stats Grid -->
@@ -861,6 +918,81 @@ import { environment } from '../../../environments/environment';
     .mat-mdc-table {
       background: transparent;
     }
+    
+    /* Styles pour les formulaires INSTAT */
+    .forms-section {
+      grid-column: 1 / -1;
+      margin: 30px 0;
+    }
+    
+    .forms-section h3 {
+      color: #333;
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .forms-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .form-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+    
+    .form-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .diag-card {
+      border-left-color: #667eea;
+    }
+    
+    .diag-card:hover {
+      border-left-color: #5a67d8;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .bilan-card {
+      border-left-color: #43a047;
+    }
+    
+    .bilan-card:hover {
+      border-left-color: #2e7d32;
+      box-shadow: 0 8px 25px rgba(67, 160, 71, 0.3);
+    }
+    
+    .prog-card {
+      border-left-color: #ff9800;
+    }
+    
+    .prog-card:hover {
+      border-left-color: #f57c00;
+      box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
+    }
+    
+    .form-card mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .form-card mat-card-subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .form-card mat-card-content p {
+      color: #555;
+      line-height: 1.4;
+    }
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -1075,5 +1207,18 @@ export class DashboardComponent implements OnInit {
 
   navigateToUsers(): void {
     this.router.navigate(['/users']);
+  }
+  
+  // Navigation vers les formulaires INSTAT
+  navigateToDiagForm(): void {
+    this.router.navigate(['/forms/diag']);
+  }
+  
+  navigateToBilanForm(): void {
+    this.router.navigate(['/forms/bilan']);
+  }
+  
+  navigateToProgForm(): void {
+    this.router.navigate(['/forms/prog']);
   }
 }

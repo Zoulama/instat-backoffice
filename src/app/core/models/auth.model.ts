@@ -28,9 +28,15 @@ export type UserRole = 'admin' | 'manager' | 'data_scientist' | 'readonly' | 'wr
 export interface UserProfile {
   username: string;
   email?: string;
+  full_name?: string; // Nom complet de l'utilisateur
+  first_name?: string; // Prénom
+  last_name?: string; // Nom de famille
   role: UserRole;
   user_id: number;
   scopes: string[];
+  is_active?: boolean;
+  created_at?: string;
+  last_login?: string;
 }
 
 export interface TokenInfo {

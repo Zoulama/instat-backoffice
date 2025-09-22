@@ -21,7 +21,8 @@ import { AuthService } from '../../core/services/auth.service';
 interface User {
   id: number;
   apiId: number; // ID API original
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: 'admin' | 'manager' | 'analyst' | 'viewer';
   department: string;
@@ -79,10 +80,10 @@ interface User {
                 <td mat-cell *matCellDef="let user">
                   <div class="user-info">
                     <div class="avatar" [class]="'avatar-' + user.role">
-                      {{ getInitials(user.name) }}
+                      {{ getInitials(user.firstName + ' ' + user.lastName) }}
                     </div>
                     <div class="user-details">
-                      <div class="name">{{ user.name }}</div>
+                      <div class="name">{{ user.firstName }} {{ user.lastName }}</div>
                       <div class="email">{{ user.email }}</div>
                     </div>
                   </div>
@@ -750,7 +751,7 @@ export class UserListComponent implements OnInit {
     }
 
     // Demander confirmation avant la réinitialisation
-    if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.name} ?\n\nUn nouveau mot de passe temporaire sera généré.`)) {
+    if (confirm(`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${user.firstName} ${user.lastName} ?\n\nUn nouveau mot de passe temporaire sera généré.`)) {
       // Afficher une notification que le processus démarre
       this.snackBar.open(
         'Génération du mot de passe temporaire en cours...',
@@ -774,7 +775,7 @@ export class UserListComponent implements OnInit {
           maxWidth: '95vw', // Responsive
           disableClose: true,
           data: {
-            username: user.name,
+            username: `${user.firstName} ${user.lastName}`,
             email: user.email,
             temporaryPassword: response.temporary_password || response.data?.temporary_password || 'Temp123!'
           }
@@ -826,7 +827,7 @@ export class UserListComponent implements OnInit {
       return;
     }
 
-    if (confirm(`Êtes-vous sûr de vouloir ${action} l'utilisateur ${user.name} ?`)) {
+    if (confirm(`Êtes-vous sûr de vouloir ${action} l'utilisateur ${user.firstName} ${user.lastName} ?`)) {
       console.log(`🔄 ${action.charAt(0).toUpperCase() + action.slice(1)} utilisateur:`, id);
       
       this.userService.toggleUserStatus(user.apiId, activate).subscribe({
@@ -864,7 +865,7 @@ export class UserListComponent implements OnInit {
       return;
     }
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.name} ?\n\nCette action est irréversible.`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.firstName} ${user.lastName} ?\n\nCette action est irréversible.`)) {
       console.log('🗑️ Suppression utilisateur:', id);
       
       this.userService.deleteUser(user.apiId).subscribe({

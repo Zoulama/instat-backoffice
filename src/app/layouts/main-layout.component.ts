@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterModule, Router } from '@angular/router';
+import { RouterOutlet, RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,6 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../core/services/auth.service';
 import { User } from '../core/models/auth.model';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-main-layout',
@@ -37,37 +38,51 @@ import { User } from '../core/models/auth.model';
         </div>
         
         <mat-nav-list>
-          <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+          <a mat-list-item routerLink="/dashboard" 
+             routerLinkActive="active" 
+             [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matListItemIcon>dashboard</mat-icon>
             <span matListItemTitle>Tableau de Bord</span>
           </a>
           
-          <a mat-list-item routerLink="/surveys" routerLinkActive="active">
+          <a mat-list-item routerLink="/surveys" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matListItemIcon>assignment</mat-icon>
             <span matListItemTitle>Enquêtes</span>
           </a>
           
-          <a mat-list-item routerLink="/surveys/manager" routerLinkActive="active">
+          <a mat-list-item routerLink="/surveys/manager" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matListItemIcon>dashboard_customize</mat-icon>
             <span matListItemTitle>Gestionnaire Enquêtes</span>
           </a>
           
-          <a mat-list-item routerLink="/templates" routerLinkActive="active">
+          <a mat-list-item routerLink="/templates" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matListItemIcon>description</mat-icon>
             <span matListItemTitle>Templates</span>
           </a>
           
-          <a mat-list-item routerLink="/templates/form-generator" routerLinkActive="active">
+          <a mat-list-item routerLink="/templates/form-generator" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: false}">
             <mat-icon matListItemIcon>build</mat-icon>
             <span matListItemTitle>Générateur de Formulaires</span>
           </a>
           
-          <a mat-list-item routerLink="/surveys/upload" routerLinkActive="active">
+          <a mat-list-item routerLink="/surveys/upload" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matListItemIcon>cloud_upload</mat-icon>
             <span matListItemTitle>Import Excel</span>
           </a>
           
-          <a mat-list-item routerLink="/users" routerLinkActive="active" 
+          <a mat-list-item routerLink="/users" 
+             routerLinkActive="active" 
+             [routerLinkActiveOptions]="{exact: true}"
              *ngIf="authService.isAdmin()">
             <mat-icon matListItemIcon>people</mat-icon>
             <span matListItemTitle>Utilisateurs</span>
@@ -84,7 +99,7 @@ import { User } from '../core/models/auth.model';
             <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
           </button>
           
-          <span class="toolbar-title">INSTAT - Plateforme de Gestion des Enquêtes</span>
+          <span class="toolbar-title">{{ pageTitle }}</span>
           
           <span class="spacer"></span>
           
@@ -94,11 +109,11 @@ import { User } from '../core/models/auth.model';
           </button>
           
           <mat-menu #userMenu="matMenu">
-            <button mat-menu-item>
+            <button mat-menu-item (click)="navigateToProfile()">
               <mat-icon>person</mat-icon>
               <span>Profil</span>
             </button>
-            <button mat-menu-item>
+            <button mat-menu-item (click)="navigateToSettings()">
               <mat-icon>settings</mat-icon>
               <span>Paramètres</span>
             </button>
@@ -175,6 +190,7 @@ import { User } from '../core/models/auth.model';
 })
 export class MainLayoutComponent implements OnInit {
   currentUser: User | null = null;
+  pageTitle: string = 'Tableau de Bord';
 
   constructor(
     public authService: AuthService,
@@ -185,10 +201,62 @@ export class MainLayoutComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Met à jour le titre de la page en fonction de la route actuelle
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.updatePageTitle(event.url);
+      });
+  }
+
+  private updatePageTitle(url: string): void {
+    const titleMap: { [key: string]: string } = {
+      '/dashboard': 'Tableau de Bord',
+      '/surveys': 'Enquêtes',
+      '/surveys/manager': 'Gestionnaire des Enquêtes',
+      '/surveys/upload': 'Import Excel',
+      '/surveys/create': 'Créer une Enquête',
+      '/surveys/search': 'Rechercher des Enquêtes',
+      '/templates': 'Templates',
+      '/templates/form-generator': 'Générateur de Formulaires',
+      '/users': 'Gestion des Utilisateurs',
+      '/admin/backend-schemas': 'Schémas Backend',
+      '/schemas': 'Schémas Frontend',
+      '/profile': 'Mon Profil',
+      '/settings': 'Paramètres'
+    };
+
+    // Recherche exacte d'abord
+    if (titleMap[url]) {
+      this.pageTitle = titleMap[url];
+      return;
+    }
+
+    // Recherche par correspondance partielle pour les routes dynamiques
+    for (const route in titleMap) {
+      if (url.startsWith(route)) {
+        this.pageTitle = titleMap[route];
+        return;
+      }
+    }
+
+    // Titre par défaut
+    this.pageTitle = 'INSTAT Back Office';
   }
 
   hasPermission(permission: string): boolean {
     return this.authService.hasPermission(permission);
+  }
+
+  navigateToProfile(): void {
+    console.log('🎯 Navigation vers le profil utilisateur');
+    this.router.navigate(['/profile']);
+  }
+
+  navigateToSettings(): void {
+    console.log('🎯 Navigation vers les paramètres');
+    this.router.navigate(['/settings']);
   }
 
   logout(): void {

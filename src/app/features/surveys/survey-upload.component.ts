@@ -109,7 +109,7 @@ interface UploadedFile {
                 <!-- Progress Bar -->
                 <div *ngIf="file.status === 'uploading' || file.status === 'processing'" class="progress-section">
                   <mat-progress-bar mode="determinate" [value]="file.progress"></mat-progress-bar>
-                  <div class="progress-text">{{ file.progress }}%</div>
+                  <div class="progress-text">{{ Math.floor(file.progress) }}%</div>
                 </div>
                 
                 <!-- Success Details -->
@@ -409,6 +409,7 @@ interface UploadedFile {
 export class SurveyUploadComponent implements OnInit {
   uploadedFiles: UploadedFile[] = [];
   isDragOver = false;
+  Math = Math; // Pour utiliser Math dans le template
 
   constructor(
     private snackBar: MatSnackBar,
@@ -482,19 +483,31 @@ export class SurveyUploadComponent implements OnInit {
 
   private simulateUpload(file: UploadedFile): void {
     const interval = setInterval(() => {
-      file.progress += Math.random() * 20;
+      // Progression plus fluide et réaliste
+      const increment = Math.random() * 8 + 2; // Entre 2% et 10% par incrément
+      file.progress = Math.min(file.progress + increment, 100);
       
       if (file.progress >= 100) {
         file.progress = 100;
         file.status = 'processing';
         clearInterval(interval);
         
-        // Simulate processing
-        setTimeout(() => {
-          this.completeProcessing(file);
-        }, 2000);
+        // Simulation plus réaliste du traitement
+        this.simulateProcessing(file);
       }
-    }, 500);
+    }, 300); // Intervalle plus court pour plus de fluidité
+  }
+  
+  private simulateProcessing(file: UploadedFile): void {
+    let processingProgress = 0;
+    const processingInterval = setInterval(() => {
+      processingProgress += Math.random() * 15 + 5; // Entre 5% et 20%
+      
+      if (processingProgress >= 100) {
+        clearInterval(processingInterval);
+        this.completeProcessing(file);
+      }
+    }, 400);
   }
 
   private completeProcessing(file: UploadedFile): void {
@@ -548,8 +561,67 @@ export class SurveyUploadComponent implements OnInit {
   }
 
   previewSurvey(fileId: number): void {
-    console.log('Previewing survey from file:', fileId);
-    // Open preview dialog or navigate to preview
+    const file = this.uploadedFiles.find(f => f.id === fileId);
+    if (file && file.status === 'completed') {
+      console.log('Previewing survey from file:', file.name);
+      
+      // Générer un aperçu simulé
+      const previewData = this.generatePreviewData(file);
+      
+      // Afficher un snackbar avec les détails ou ouvrir un dialog
+      const snackBarRef = this.snackBar.open(
+        `Aperçu: ${file.templateName} - ${file.questionsCount} questions détectées`, 
+        'Voir détails', 
+        {
+          duration: 8000,
+          panelClass: 'info-snackbar'
+        }
+      );
+      
+      snackBarRef.onAction().subscribe(() => {
+        this.showDetailedPreview(file, previewData);
+      });
+    } else {
+      this.snackBar.open('Impossible de prévisualiser ce fichier', 'Fermer', {
+        duration: 3000,
+        panelClass: 'error-snackbar'
+      });
+    }
+  }
+  
+  private generatePreviewData(file: UploadedFile): any {
+    // Simulation de données de prévisualisation
+    const sampleQuestions = [
+      'Quelle est votre âge ?',
+      'Quel est votre niveau d\'instruction ?',
+      'Quelle est votre profession ?',
+      'Quel est votre revenu mensuel ?',
+      'Avez-vous accès à l\'internet ?'
+    ];
+    
+    return {
+      fileName: file.name,
+      questionsDetected: file.questionsCount,
+      sampleQuestions: sampleQuestions.slice(0, file.questionsCount || 5),
+      estimatedCompletionTime: Math.floor((file.questionsCount || 10) * 0.5) + ' minutes',
+      suggestedSurveyType: 'Enquête Socio-économique INSTAT'
+    };
+  }
+  
+  private showDetailedPreview(file: UploadedFile, previewData: any): void {
+    const message = `
+      Fichier: ${previewData.fileName}\n
+      Questions détectées: ${previewData.questionsDetected}\n
+      Exemples de questions:\n
+      ${previewData.sampleQuestions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}
+      \n
+      Temps estimé: ${previewData.estimatedCompletionTime}\n
+      Type suggéré: ${previewData.suggestedSurveyType}
+    `;
+    
+    if (confirm(message + '\n\nVoulez-vous créer cette enquête maintenant ?')) {
+      this.createSurvey(file.id);
+    }
   }
 
   createSurvey(fileId: number): void {

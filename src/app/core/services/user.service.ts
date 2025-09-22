@@ -7,6 +7,8 @@ import { environment } from '../../../environments/environment';
 export interface ApiUser {
   username: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
   role: string;
   user_id: number;
   created_at?: string;
@@ -16,6 +18,8 @@ export interface ApiUser {
 }
 
 export interface UserCreate {
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
   role: string;
@@ -24,6 +28,8 @@ export interface UserCreate {
 }
 
 export interface UserUpdate {
+  first_name?: string;
+  last_name?: string;
   email?: string;
   role?: string;
   status?: string;
@@ -93,7 +99,18 @@ export class UserService {
   createUser(userData: UserCreate): Observable<UserResponse> {
     console.log('➕ Création d\'un nouvel utilisateur:', userData.username);
     
-    return this.http.post<UserResponse>(`${this.API_URL}/v1/api/admin/users`, userData)
+    // Adapter les données pour l'API backend
+    const apiPayload = {
+      username: userData.username,
+      email: userData.email,
+      first_name: userData.firstName,
+      last_name: userData.lastName,
+      role: userData.role,
+      department: userData.department,
+      password: userData.password
+    };
+    
+    return this.http.post<UserResponse>(`${this.API_URL}/v1/api/admin/users`, apiPayload)
       .pipe(
         tap(response => {
           if (response.success) {
@@ -217,10 +234,11 @@ export class UserService {
     return {
       id: apiUser.user_id,
       apiId: apiUser.user_id, // Conserver l'ID API original
-      name: apiUser.username,
+      firstName: apiUser.first_name || 'Prénom', // Utiliser first_name de l'API ou valeur par défaut
+      lastName: apiUser.last_name || 'Nom', // Utiliser last_name de l'API ou valeur par défaut
       email: apiUser.email,
       role: this.mapApiRoleToLocal(apiUser.role),
-      department: apiUser.department || 'Non spécifié', // Utilise le département de l'API ou valeur par défaut
+      department: apiUser.department || 'Non spécifié',
       status: apiUser.status || 'active',
       lastLogin: null, // Pas d'info de dernière connexion dans l'API
       created: apiUser.created_at ? new Date(apiUser.created_at) : new Date()
@@ -232,6 +250,8 @@ export class UserService {
    */
   convertLocalUserToApi(localUser: any): UserUpdate {
     return {
+      first_name: localUser.firstName,
+      last_name: localUser.lastName,
       email: localUser.email,
       role: this.mapLocalRoleToApi(localUser.role),
       status: localUser.status,
