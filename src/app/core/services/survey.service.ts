@@ -125,7 +125,7 @@ export class SurveyService {
       formData.append('schema_name', schemaName);
     }
 
-    return this.http.post<any>(`${this.API_URL}/v1/files/upload-excel-and-create-survey`, formData);
+    return this.http.post<any>(`${this.API_URL}/v1/api/files/upload-excel-and-create-survey`, formData);
   }
 
   uploadExcelAndCreateSurveyWithTemplate(
@@ -141,6 +141,6 @@ export class SurveyService {
       formData.append('schema_name', schemaName);
     }
 
-    return this.http.post<any>(`${this.API_URL}/v1/files/upload-excel-and-create-survey-with-template`, formData);
+    return this.http.post<any>(`${this.API_URL}/v1/api/files/upload-excel-and-create-survey-with-template`, formData);
   }
 }

@@ -63,7 +63,7 @@ export const environment = {
   
   // Development Configuration
   enableDevTools: true,
-  enableMockData: true,
+  enableMockData: false,
   devProxyEnabled: false,
   devProxyTarget: 'http://localhost:8000',
   hotReloadEnabled: true,

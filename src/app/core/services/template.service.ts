@@ -17,18 +17,14 @@ import {
 import { INSTATDomain, SurveyCategory } from '../models/survey.model';
 import { ApiResponse, PaginatedResponse, DeleteResponse } from '../models/auth.model';
 import { environment } from '../../../environments/environment';
-import { MockTemplateService } from './mock-template.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TemplateService {
   private readonly API_URL = environment.apiUrl;
-  private readonly useMockData = environment.enableMockData && !environment.production; // Use mock data only when explicitly enabled
-
   constructor(
-    private http: HttpClient,
-    private mockService: MockTemplateService
+    private http: HttpClient
   ) {}
 
   // Template CRUD Operations
@@ -37,9 +33,6 @@ export class TemplateService {
   }
 
   getTemplate(templateId: number): Observable<ApiResponse<SurveyTemplateResponse>> {
-    if (this.useMockData) {
-      return this.mockService.getTemplate(templateId);
-    }
     return this.http.get<ApiResponse<SurveyTemplateResponse>>(`${this.API_URL}/v1/api/instat/templates/${templateId}`);
   }
 
@@ -55,10 +48,6 @@ export class TemplateService {
       category?: SurveyCategory;
     }
   ): Observable<PaginatedResponse<SurveyTemplateResponse>> {
-    if (this.useMockData) {
-      return this.mockService.getTemplates(page, limit, filters);
-    }
-    
     let params = new HttpParams()
       .set('skip', (page - 1) * limit)
       .set('limit', limit);
@@ -72,10 +61,6 @@ export class TemplateService {
   }
 
   getTemplateDashboard(page: number = 1, limit: number = 10): Observable<TemplateStats> {
-    if (this.useMockData) {
-      return this.mockService.getTemplateDashboard();
-    }
-    
     const params = new HttpParams()
       .set('skip', (page - 1) * limit)
       .set('limit', limit);
@@ -93,9 +78,6 @@ export class TemplateService {
 
   // Form Generation from Templates
   generateFormFromTemplate(templateId: number): Observable<GeneratedForm> {
-    if (this.useMockData) {
-      return this.mockService.generateFormFromTemplate(templateId);
-    }
     return this.getTemplate(templateId).pipe(
       map(response => this.convertTemplateToForm(response.data))
     );
@@ -112,7 +94,7 @@ export class TemplateService {
     return {
       templateId: template.TemplateID!,
       templateName: template.TemplateName,
-      sections: template.Sections?.map(section => this.convertSectionToFormSection(section)) || []
+      sections: template.Sections?.map((section, index) => this.convertBackendSectionToFormSection(section, index)) || []
     };
   }
 
@@ -142,6 +124,60 @@ export class TemplateService {
       fields: section.questions?.map((question: any) => this.convertQuestionToFormField(question)) || [],
       subsections: section.subsections?.map((subsection: any) => this.convertDetailSectionToFormSection(subsection)) || []
     };
+  }
+
+  private convertBackendSectionToFormSection(section: any, sectionIndex: number): FormSection {
+    return {
+      id: `section_${sectionIndex}`,
+      title: section.title || `Section ${sectionIndex + 1}`,
+      description: section.description || '',
+      fields: section.questions?.map((question: any, questionIndex: number) => 
+        this.convertBackendQuestionToFormField(question, sectionIndex, questionIndex)
+      ) || [],
+      subsections: section.subsections?.map((subsection: any, subsectionIndex: number) => {
+        return {
+          id: `subsection_${sectionIndex}_${subsectionIndex}`,
+          title: subsection.title || `Subsection ${subsectionIndex + 1}`,
+          description: subsection.description || '',
+          fields: subsection.questions?.map((question: any, questionIndex: number) => 
+            this.convertBackendQuestionToFormField(question, sectionIndex, questionIndex + 1000 + subsectionIndex * 100)
+          ) || []
+        };
+      }) || []
+    };
+  }
+
+  private convertBackendQuestionToFormField(question: any, sectionIndex: number, questionIndex: number): FormField {
+    const field: FormField = {
+      id: `question_${sectionIndex}_${questionIndex}`,
+      type: this.mapBackendTypeToFrontendType(question.type),
+      label: question.text || `Question ${questionIndex + 1}`,
+      required: question.is_required || false,
+      placeholder: this.getPlaceholderForQuestionType(question.type)
+    };
+
+    // Ajouter les options si elles existent
+    if (question.options && question.options.length > 0) {
+      field.options = question.options.map((option: any) => ({
+        label: option.text || option.value || option,
+        value: option.value || option.text || option
+      }));
+    }
+
+    return field;
+  }
+
+  private mapBackendTypeToFrontendType(backendType: string): string {
+    const typeMapping: { [key: string]: string } = {
+      'text': 'text',
+      'number': 'number',
+      'date': 'date',
+      'phone': 'text',
+      'single_choice': 'single_choice',
+      'multiple_choice': 'multiple_choice'
+    };
+    
+    return typeMapping[backendType] || 'text';
   }
 
   private convertQuestionToFormField(question: INSTATQuestion): FormField {

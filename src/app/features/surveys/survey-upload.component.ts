@@ -7,6 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { Router } from '@angular/router';
+import { SurveyService } from '../../core/services/survey.service';
 
 interface UploadedFile {
   id: number;
@@ -413,7 +414,8 @@ export class SurveyUploadComponent implements OnInit {
 
   constructor(
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private surveyService: SurveyService
   ) {}
 
   ngOnInit(): void {
@@ -477,59 +479,54 @@ export class SurveyUploadComponent implements OnInit {
     
     this.uploadedFiles.unshift(uploadedFile);
     
-    // Simulate upload progress
-    this.simulateUpload(uploadedFile);
+    // Utiliser le vrai service d'upload
+    this.realUploadFile(file, uploadedFile);
   }
 
-  private simulateUpload(file: UploadedFile): void {
-    const interval = setInterval(() => {
-      // Progression plus fluide et réaliste
-      const increment = Math.random() * 8 + 2; // Entre 2% et 10% par incrément
-      file.progress = Math.min(file.progress + increment, 100);
-      
-      if (file.progress >= 100) {
-        file.progress = 100;
-        file.status = 'processing';
-        clearInterval(interval);
+  private realUploadFile(file: File, uploadedFile: UploadedFile): void {
+    // Utiliser le service survey pour l'upload réel
+    this.surveyService.uploadExcelAndCreateSurvey(
+      file, 
+      true, // create_template = true
+      `Template généré depuis ${file.name}`
+    ).subscribe({
+      next: (response) => {
+        uploadedFile.status = 'processing';
+        uploadedFile.progress = 50;
         
-        // Simulation plus réaliste du traitement
-        this.simulateProcessing(file);
+        // Traitement réussi
+        setTimeout(() => {
+          uploadedFile.status = 'completed';
+          uploadedFile.progress = 100;
+          uploadedFile.templateName = response.template_name || `Template généré depuis ${file.name}`;
+          uploadedFile.questionsCount = response.questions_count || response.data?.sections?.reduce((total: number, section: any) => total + (section.questions?.length || 0), 0) || 0;
+          
+          this.snackBar.open(`Fichier ${file.name} traité avec succès!`, 'Fermer', {
+            duration: 3000,
+            panelClass: 'success-snackbar'
+          });
+        }, 1000);
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'upload:', error);
+        uploadedFile.status = 'error';
+        uploadedFile.progress = 0;
+        
+        let errorMessage = 'Erreur lors du traitement du fichier';
+        if (error.error && error.error.detail) {
+          errorMessage = error.error.detail;
+        } else if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.snackBar.open(`Erreur: ${errorMessage}`, 'Fermer', {
+          duration: 8000,
+          panelClass: 'error-snackbar'
+        });
       }
-    }, 300); // Intervalle plus court pour plus de fluidité
-  }
-  
-  private simulateProcessing(file: UploadedFile): void {
-    let processingProgress = 0;
-    const processingInterval = setInterval(() => {
-      processingProgress += Math.random() * 15 + 5; // Entre 5% et 20%
-      
-      if (processingProgress >= 100) {
-        clearInterval(processingInterval);
-        this.completeProcessing(file);
-      }
-    }, 400);
-  }
-
-  private completeProcessing(file: UploadedFile): void {
-    // Simulate successful processing
-    const success = Math.random() > 0.2; // 80% success rate
-    
-    if (success) {
-      file.status = 'completed';
-      file.templateName = `Template généré depuis ${file.name}`;
-      file.questionsCount = Math.floor(Math.random() * 20) + 10; // 10-30 questions
-      
-      this.snackBar.open(`Fichier ${file.name} traité avec succès!`, 'Fermer', {
-        duration: 3000,
-        panelClass: 'success-snackbar'
-      });
-    } else {
-      file.status = 'error';
-      this.snackBar.open(`Erreur lors du traitement de ${file.name}`, 'Fermer', {
-        duration: 5000,
-        panelClass: 'error-snackbar'
-      });
-    }
+    });
   }
 
   getStatusIcon(status: string): string {
@@ -626,14 +623,26 @@ export class SurveyUploadComponent implements OnInit {
 
   createSurvey(fileId: number): void {
     const file = this.uploadedFiles.find(f => f.id === fileId);
-    if (file) {
+    if (file && file.status === 'completed') {
       console.log('Creating survey from file:', file.name);
-      this.snackBar.open('Enquête créée avec succès!', 'Fermer', {
+      // Le template a déjà été créé lors de l'upload, maintenant on navigue vers la génération de formulaire
+      this.snackBar.open('Redirection vers la génération de formulaire...', 'Fermer', {
         duration: 3000,
         panelClass: 'success-snackbar'
       });
-      // Navigate to survey list or editor
-      this.router.navigate(['/surveys']);
+      // Navigate to form generator with the template
+      this.router.navigate(['/templates/form-generator'], {
+        queryParams: { 
+          fromUpload: true, 
+          fileName: file.name,
+          templateName: file.templateName
+        }
+      });
+    } else {
+      this.snackBar.open('Impossible de créer l\'enquête. Fichier non traité ou en erreur.', 'Fermer', {
+        duration: 5000,
+        panelClass: 'error-snackbar'
+      });
     }
   }
 
@@ -642,7 +651,19 @@ export class SurveyUploadComponent implements OnInit {
     if (file) {
       file.status = 'uploading';
       file.progress = 0;
-      this.simulateUpload(file);
+      
+      // Recréer un objet File à partir du nom (nous devons stocker le fichier original)
+      // Pour l'instant, on informe l'utilisateur de réuploader le fichier
+      this.snackBar.open('Veuillez réuploader le fichier pour réessayer', 'Fermer', {
+        duration: 5000,
+        panelClass: 'info-snackbar'
+      });
+      
+      // Optionnel: supprimer le fichier en erreur de la liste
+      const index = this.uploadedFiles.findIndex(f => f.id === fileId);
+      if (index > -1) {
+        this.uploadedFiles.splice(index, 1);
+      }
     }
   }
 }

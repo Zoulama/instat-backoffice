@@ -971,13 +971,23 @@ export class FormGeneratorComponent implements OnInit {
           defaultValue = 3; // Valeur moyenne pour les sliders 1-5
           break;
         case 'number':
+        case 'budget_allocation':
           defaultValue = 0;
           break;
         case 'date':
           defaultValue = null;
           break;
+        case 'compliance_checklist':
+          defaultValue = 'compliant'; // Valeur par défaut pour conformité
+          break;
+        case 'single_choice':
+        case 'multiple_choice':
+        case 'geographic_selection':
+        case 'vulnerability_assessment':
+        case 'text':
+        case 'indicator_tracking':
         default:
-          defaultValue = '';
+          defaultValue = ''; // Chaîne vide pour les champs texte
       }
       
       controls[field.id] = new FormControl(defaultValue, validators);
@@ -1048,27 +1058,112 @@ export class FormGeneratorComponent implements OnInit {
   }
 
   getSectionProgress(sectionIndex: number): number {
+    if (!this.generatedForm || !this.generatedForm.sections[sectionIndex]) {
+      return 0;
+    }
+
     const sectionGroup = this.getSectionFormGroup(sectionIndex);
     if (!sectionGroup) return 0;
 
-    const controls = Object.values(sectionGroup.controls);
-    const filledControls = controls.filter(control => 
-      control.value && control.value !== '' && control.value !== false
-    );
+    const section = this.generatedForm.sections[sectionIndex];
+    
+    // Compter tous les champs requis dans la section (y compris dans les sous-sections)
+    let totalRequiredFields = 0;
+    let filledRequiredFields = 0;
+    
+    // Champs de la section principale
+    if (section.fields) {
+      section.fields.forEach(field => {
+        if (field.required) {
+          totalRequiredFields++;
+          const control = sectionGroup.get(field.id);
+          if (control && this.isFieldFilled(control, field)) {
+            filledRequiredFields++;
+          }
+        }
+      });
+    }
+    
+    // Champs des sous-sections
+    if (section.subsections) {
+      section.subsections.forEach(subsection => {
+        if (subsection.fields) {
+          subsection.fields.forEach(field => {
+            if (field.required) {
+              totalRequiredFields++;
+              const control = sectionGroup.get(field.id);
+              if (control && this.isFieldFilled(control, field)) {
+                filledRequiredFields++;
+              }
+            }
+          });
+        }
+      });
+    }
+    
+    // Si aucun champ requis, retourner 100% (section optionnelle)
+    if (totalRequiredFields === 0) {
+      return 100;
+    }
+    
+    const progress = Math.round((filledRequiredFields / totalRequiredFields) * 100);
+    return isNaN(progress) ? 0 : progress;
+  }
 
-    return Math.round((filledControls.length / controls.length) * 100);
+  private isFieldFilled(control: any, field: any): boolean {
+    const value = control.value;
+    
+    // Vérifier selon le type de champ
+    if (value === null || value === undefined) return false;
+    
+    switch (field.type) {
+      case 'text':
+      case 'indicator_tracking':
+        return typeof value === 'string' && value.trim().length > 0;
+      
+      case 'number':
+      case 'budget_allocation':
+        return typeof value === 'number' && !isNaN(value);
+      
+      case 'date':
+        return value !== null && value !== '';
+      
+      case 'single_choice':
+      case 'geographic_selection':
+      case 'vulnerability_assessment':
+      case 'compliance_checklist':
+        return typeof value === 'string' && value.trim().length > 0;
+      
+      case 'multiple_choice':
+        // Pour les choix multiples, vérifier qu'au moins une option est sélectionnée
+        if (field.options) {
+          return field.options.some((option: any, index: number) => {
+            const checkboxControl = control.parent?.get(`${field.id}_${index}`);
+            return checkboxControl && checkboxControl.value === true;
+          });
+        }
+        return false;
+      
+      case 'performance_scale':
+        return typeof value === 'number' && value >= 1 && value <= 5;
+      
+      default:
+        return !!value && value !== '' && value !== false;
+    }
   }
 
   getTotalFieldCount(): number {
-    if (!this.generatedForm) return 0;
+    if (!this.generatedForm || !this.generatedForm.sections) return 0;
     
     return this.generatedForm.sections.reduce((total, section) => {
+      if (!section) return total;
+      
       let sectionTotal = section.fields?.length || 0;
       
       // Add subsection fields count
-      if (section.subsections) {
+      if (section.subsections && Array.isArray(section.subsections)) {
         sectionTotal += section.subsections.reduce((subTotal, subsection) => {
-          return subTotal + (subsection.fields?.length || 0);
+          return subTotal + (subsection?.fields?.length || 0);
         }, 0);
       }
       
@@ -1089,7 +1184,8 @@ export class FormGeneratorComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.dynamicForm.valid) {
+    // Vérifier que tous les champs requis sont remplis
+    if (this.isFormCompletelyValid()) {
       const formData = this.dynamicForm.value;
       
       this.snackBar.open('Formulaire soumis avec succès!', 'Fermer', {
@@ -1103,11 +1199,71 @@ export class FormGeneratorComponent implements OnInit {
       // this.surveyService.submitFormResponse(this.templateId, formData).subscribe(...)
       
     } else {
-      this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', {
-        duration: 5000,
+      const missingFields = this.getMissingRequiredFields();
+      const message = missingFields.length > 0 
+        ? `Veuillez remplir les champs obligatoires manquants: ${missingFields.join(', ')}`
+        : 'Veuillez remplir tous les champs obligatoires';
+        
+      this.snackBar.open(message, 'Fermer', {
+        duration: 8000,
         panelClass: 'error-snackbar'
       });
     }
+  }
+
+  private isFormCompletelyValid(): boolean {
+    if (!this.generatedForm) return false;
+    
+    // Vérifier chaque section
+    for (let i = 0; i < this.generatedForm.sections.length; i++) {
+      const progress = this.getSectionProgress(i);
+      if (progress < 100) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  private getMissingRequiredFields(): string[] {
+    const missingFields: string[] = [];
+    
+    if (!this.generatedForm) return missingFields;
+    
+    this.generatedForm.sections.forEach((section, sectionIndex) => {
+      const sectionGroup = this.getSectionFormGroup(sectionIndex);
+      if (!sectionGroup) return;
+      
+      // Champs de la section principale
+      if (section.fields) {
+        section.fields.forEach(field => {
+          if (field.required) {
+            const control = sectionGroup.get(field.id);
+            if (!control || !this.isFieldFilled(control, field)) {
+              missingFields.push(field.label);
+            }
+          }
+        });
+      }
+      
+      // Champs des sous-sections
+      if (section.subsections) {
+        section.subsections.forEach(subsection => {
+          if (subsection.fields) {
+            subsection.fields.forEach(field => {
+              if (field.required) {
+                const control = sectionGroup.get(field.id);
+                if (!control || !this.isFieldFilled(control, field)) {
+                  missingFields.push(`${subsection.title}: ${field.label}`);
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+    
+    return missingFields;
   }
 
   saveForm(): void {
