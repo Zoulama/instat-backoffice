@@ -7,6 +7,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-user-create-dialog',
@@ -19,7 +22,8 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   template: `
     <div class="dialog-container">
@@ -109,11 +113,20 @@ import { MatIconModule } from '@angular/material/icon';
                    formControlName="password" 
                    placeholder="Mot de passe" 
                    [type]="hidePassword ? 'password' : 'text'">
-            <button mat-icon-button matSuffix 
-                    type="button"
-                    (click)="hidePassword = !hidePassword">
-              <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
-            </button>
+            <div matSuffix class="password-suffix">
+              <button mat-icon-button 
+                      type="button"
+                      (click)="generatePassword()"
+                      matTooltip="Générer un mot de passe sécurisé">
+                <mat-icon>autorenew</mat-icon>
+              </button>
+              <button mat-icon-button 
+                      type="button"
+                      (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+              </button>
+            </div>
+            <mat-hint *ngIf="generatedPassword">Mot de passe généré automatiquement</mat-hint>
             <mat-error *ngIf="createForm.get('password')?.hasError('required')">
               Le mot de passe est requis
             </mat-error>
@@ -189,16 +202,25 @@ import { MatIconModule } from '@angular/material/icon';
       gap: 8px;
       margin-bottom: 0;
     }
+    
+    .password-suffix {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   `]
 })
 export class UserCreateDialogComponent implements OnInit {
   createForm: FormGroup;
   hidePassword = true;
   hideConfirmPassword = true;
+  generatedPassword = false;
 
   constructor(
     private formBuilder: FormBuilder,
-    private dialogRef: MatDialogRef<UserCreateDialogComponent>
+    private dialogRef: MatDialogRef<UserCreateDialogComponent>,
+    private userService: UserService,
+    private snackBar: MatSnackBar
   ) {
     this.createForm = this.formBuilder.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -230,6 +252,44 @@ export class UserCreateDialogComponent implements OnInit {
       // Le username sera l'email complet
       this.createForm.get('username')?.setValue(email);
     }
+  }
+
+  /**
+   * Génère un mot de passe sécurisé automatiquement
+   */
+  generatePassword(): void {
+    this.userService.generateTemporaryPassword().subscribe({
+      next: (response) => {
+        const password = response.password;
+        this.createForm.patchValue({
+          password: password,
+          confirmPassword: password
+        });
+        this.generatedPassword = true;
+        this.hidePassword = false; // Afficher le mot de passe généré
+        this.hideConfirmPassword = false;
+        
+        this.snackBar.open(
+          'Mot de passe sécurisé généré avec succès',
+          'Fermer',
+          {
+            duration: 3000,
+            panelClass: 'success-snackbar'
+          }
+        );
+      },
+      error: (error) => {
+        console.error('Erreur génération mot de passe:', error);
+        this.snackBar.open(
+          'Erreur lors de la génération du mot de passe',
+          'Fermer',
+          {
+            duration: 5000,
+            panelClass: 'error-snackbar'
+          }
+        );
+      }
+    });
   }
 
   passwordMatchValidator(form: FormGroup) {

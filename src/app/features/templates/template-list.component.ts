@@ -182,6 +182,19 @@ import { INSTATDomain, SurveyCategory } from '../../core/models/survey.model';
                     </button>
                     
                     <button mat-icon-button 
+                            color="primary"
+                            (click)="previewTemplate(template.TemplateID)"
+                            matTooltip="Prévisualiser">
+                      <mat-icon>preview</mat-icon>
+                    </button>
+                    
+                    <button mat-icon-button 
+                            (click)="duplicateTemplate(template)"
+                            matTooltip="Dupliquer">
+                      <mat-icon>content_copy</mat-icon>
+                    </button>
+                    
+                    <button mat-icon-button 
                             (click)="editTemplate(template.TemplateID)"
                             matTooltip="Modifier">
                       <mat-icon>edit</mat-icon>
@@ -478,6 +491,65 @@ export class TemplateListComponent implements OnInit {
 
   generateForm(templateId: number): void {
     this.router.navigate(['/templates/form-generator', templateId]);
+  }
+
+  /**
+   * Prévisualise un template en ouvrant le générateur de formulaire en mode lecture seule
+   */
+  previewTemplate(templateId: number): void {
+    this.templateService.previewTemplate(templateId).subscribe({
+      next: (generatedForm) => {
+        console.log('Template preview:', generatedForm);
+        // Ouvrir le générateur de formulaires en mode prévisualisation
+        this.router.navigate(['/templates/form-generator', templateId], {
+          queryParams: { preview: true }
+        });
+      },
+      error: (error) => {
+        console.error('Error previewing template:', error);
+        this.snackBar.open('Erreur lors de la prévisualisation du template', 'Fermer', {
+          duration: 5000,
+          panelClass: 'error-snackbar'
+        });
+      }
+    });
+  }
+
+  /**
+   * Duplique un template existant
+   */
+  duplicateTemplate(template: SurveyTemplateResponse): void {
+    const newName = prompt(
+      `Nom du nouveau template (copie de "${template.TemplateName}"):`,
+      `${template.TemplateName} - Copie`
+    );
+    
+    if (newName && newName.trim()) {
+      this.templateService.duplicateTemplate(template.TemplateID!, newName.trim()).subscribe({
+        next: (response) => {
+          this.snackBar.open(
+            `Template "${newName}" créé avec succès (ID: ${response.data.TemplateID})`,
+            'Fermer',
+            {
+              duration: 5000,
+              panelClass: 'success-snackbar'
+            }
+          );
+          this.loadTemplates(); // Recharger la liste
+        },
+        error: (error) => {
+          console.error('Error duplicating template:', error);
+          this.snackBar.open(
+            'Erreur lors de la duplication du template', 
+            'Fermer', 
+            {
+              duration: 5000,
+              panelClass: 'error-snackbar'
+            }
+          );
+        }
+      });
+    }
   }
 
   deleteTemplate(template: SurveyTemplateResponse): void {

@@ -143,4 +143,75 @@ export class SurveyService {
 
     return this.http.post<any>(`${this.API_URL}/v1/api/files/upload-excel-and-create-survey-with-template`, formData);
   }
+
+  // Survey Statistics and Progress
+  /**
+   * Récupère les statistiques détaillées d'une enquête
+   */
+  getSurveyStatistics(surveyId: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/v1/api/instat/surveys/${surveyId}/statistics`);
+  }
+
+  /**
+   * Récupère la progression d'un formulaire d'enquête
+   */
+  getSurveyProgress(surveyId: number): Observable<{progress_percentage: number, completed_sections: number, total_sections: number}> {
+    return this.http.get<{progress_percentage: number, completed_sections: number, total_sections: number}>(
+      `${this.API_URL}/v1/api/instat/surveys/${surveyId}/progress`
+    );
+  }
+
+  /**
+   * Sauvegarde les réponses partielles d'une enquête
+   */
+  savePartialResponses(surveyId: number, responses: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/v1/api/instat/surveys/${surveyId}/responses`, {
+      responses,
+      is_draft: true
+    });
+  }
+
+  /**
+   * Valide un formulaire avant soumission finale
+   */
+  validateSurvey(surveyId: number, responses: any): Observable<{is_valid: boolean, errors: string[], warnings: string[]}> {
+    return this.http.post<{is_valid: boolean, errors: string[], warnings: string[]}>(
+      `${this.API_URL}/v1/api/instat/surveys/${surveyId}/validate`,
+      { responses }
+    );
+  }
+
+  /**
+   * Exporte les données d'une enquête
+   */
+  exportSurveyData(surveyId: number, format: 'excel' | 'csv' | 'json' = 'excel'): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/v1/api/instat/surveys/${surveyId}/export`, {
+      params: { format },
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Recherche avancée d'enquêtes
+   */
+  searchSurveys(
+    query: string,
+    filters?: {
+      domain?: INSTATDomain;
+      category?: SurveyCategory;
+      date_from?: string;
+      date_to?: string;
+    }
+  ): Observable<PaginatedResponse<INSTATSurvey>> {
+    let params = new HttpParams().set('q', query);
+    
+    if (filters) {
+      if (filters.domain) params = params.set('domain', filters.domain);
+      if (filters.category) params = params.set('category', filters.category);
+      if (filters.date_from) params = params.set('date_from', filters.date_from);
+      if (filters.date_to) params = params.set('date_to', filters.date_to);
+    }
+
+    return this.http.get<PaginatedResponse<INSTATSurvey>>(`${this.API_URL}/v1/api/instat/surveys/search`, { params });
+  }
 }

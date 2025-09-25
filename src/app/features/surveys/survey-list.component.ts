@@ -7,7 +7,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { SurveyService } from '../../core/services/survey.service';
 
 interface Survey {
   id: number;
@@ -69,6 +71,14 @@ interface Survey {
                       <button mat-menu-item (click)="editSurvey(survey.id)">
                         <mat-icon>edit</mat-icon>
                         <span>Modifier</span>
+                      </button>
+                      <button mat-menu-item (click)="viewStatistics(survey.id)">
+                        <mat-icon>analytics</mat-icon>
+                        <span>Statistiques</span>
+                      </button>
+                      <button mat-menu-item (click)="exportSurvey(survey.id)">
+                        <mat-icon>download</mat-icon>
+                        <span>Exporter</span>
                       </button>
                       <button mat-menu-item (click)="duplicateSurvey(survey.id)">
                         <mat-icon>content_copy</mat-icon>
@@ -299,7 +309,11 @@ export class SurveyListComponent implements OnInit {
     }
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private surveyService: SurveyService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     // Component initialization
@@ -376,5 +390,93 @@ export class SurveyListComponent implements OnInit {
       
       this.router.navigate(['/form-generator', templateId]);
     }
+  }
+
+  /**
+   * Affiche les statistiques détaillées d'une enquête
+   */
+  viewStatistics(id: number): void {
+    this.surveyService.getSurveyStatistics(id).subscribe({
+      next: (stats) => {
+        console.log('Survey statistics:', stats);
+        // Ouvrir une modale ou naviguer vers la page de statistiques
+        this.router.navigate(['/surveys', id, 'statistics']);
+      },
+      error: (error) => {
+        console.error('Error loading survey statistics:', error);
+        this.snackBar.open(
+          'Erreur lors du chargement des statistiques', 
+          'Fermer', 
+          { 
+            duration: 5000,
+            panelClass: 'error-snackbar' 
+          }
+        );
+      }
+    });
+  }
+
+  /**
+   * Exporte les données d'une enquête
+   */
+  exportSurvey(id: number): void {
+    const survey = this.surveys.find(s => s.id === id);
+    if (!survey) return;
+    
+    // Proposer le format d'export
+    const format = prompt('Format d\'export (excel, csv, json):', 'excel');
+    if (!format) return;
+    
+    if (!['excel', 'csv', 'json'].includes(format.toLowerCase())) {
+      this.snackBar.open(
+        'Format non valide. Utilisez: excel, csv ou json', 
+        'Fermer', 
+        { duration: 5000 }
+      );
+      return;
+    }
+    
+    this.snackBar.open(
+      'Préparation de l\'export en cours...', 
+      'Fermer', 
+      { duration: 2000 }
+    );
+    
+    this.surveyService.exportSurveyData(id, format as any).subscribe({
+      next: (blob) => {
+        // Créer un lien de téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        const fileName = `enquete_${survey.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.${format}`;
+        link.download = fileName;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        this.snackBar.open(
+          `Export réussi: ${fileName}`, 
+          'Fermer', 
+          { 
+            duration: 5000,
+            panelClass: 'success-snackbar' 
+          }
+        );
+      },
+      error: (error) => {
+        console.error('Export error:', error);
+        this.snackBar.open(
+          'Erreur lors de l\'export', 
+          'Fermer', 
+          { 
+            duration: 5000,
+            panelClass: 'error-snackbar' 
+          }
+        );
+      }
+    });
   }
 }

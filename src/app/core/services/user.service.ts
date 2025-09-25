@@ -206,16 +206,24 @@ export class UserService {
   resetPassword(userId: number): Observable<any> {
     console.log('🔐 Réinitialisation mot de passe utilisateur ID:', userId);
     
-    // Pour l'instant, générer un mot de passe côté client
-    // En production, ceci devrait être fait par l'API
-    const temporaryPassword = this.generateSecurePassword(8);
-    
     return this.http.post(`${this.API_URL}/v1/api/admin/users/${userId}/reset-password`, {})
       .pipe(
         tap((response: any) => {
           console.log('✅ Mot de passe réinitialisé avec succès');
-          // Ajouter le mot de passe généré à la réponse
-          response.temporary_password = temporaryPassword;
+        })
+      );
+  }
+
+  /**
+   * Génère un mot de passe temporaire via l'API backend
+   */
+  generateTemporaryPassword(): Observable<{password: string}> {
+    console.log('🎲 Génération d\'un mot de passe temporaire via API');
+    
+    return this.http.get<{password: string}>(`${this.API_URL}/v1/api/admin/users/generate-password`)
+      .pipe(
+        tap(response => {
+          console.log('✅ Mot de passe temporaire généré');
         })
       );
   }

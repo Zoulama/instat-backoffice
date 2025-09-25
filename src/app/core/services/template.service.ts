@@ -76,6 +76,31 @@ export class TemplateService {
     return this.http.delete<DeleteResponse>(`${this.API_URL}/v1/api/instat/templates/${templateId}`);
   }
 
+  /**
+   * Duplique un template existant
+   */
+  duplicateTemplate(templateId: number, newName?: string): Observable<ApiResponse<SurveyTemplateResponse>> {
+    const body = newName ? { name: newName } : {};
+    return this.http.post<ApiResponse<SurveyTemplateResponse>>(`${this.API_URL}/v1/api/instat/templates/${templateId}/duplicate`, body);
+  }
+
+  /**
+   * Récupère les actions disponibles pour un template
+   */
+  getTemplateActions(templateId: number): Observable<{actions: string[]}> {
+    return this.http.get<{actions: string[]}>(`${this.API_URL}/v1/api/instat/templates/${templateId}/actions`);
+  }
+
+  /**
+   * Prévisualisation d'un template sous forme de formulaire
+   */
+  previewTemplate(templateId: number): Observable<GeneratedForm> {
+    return this.http.get<any>(`${this.API_URL}/v1/api/instat/templates/${templateId}/preview`)
+      .pipe(
+        map(response => this.convertTemplateToForm(response.data))
+      );
+  }
+
   // Form Generation from Templates
   generateFormFromTemplate(templateId: number): Observable<GeneratedForm> {
     return this.getTemplate(templateId).pipe(
